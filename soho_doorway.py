@@ -10,6 +10,8 @@ import subprocess
 class SohoDoorway:
     def __init__(self):
         self.log_file = os.getcwd() + "/doorway.log"
+        self.non_telstra_organisations =  os.getcwd() + "/non_telstra_organisations.txt"
+        self.summary = os.getcwd() + "/summary.txt"
 
     def read_ip_file(self) -> Generator:
         try:
@@ -31,7 +33,7 @@ class SohoDoorway:
         return cmds
 
     def substitute(self, cmds):
-        with concurrent.futures.ProcessPoolExecutor(32) as pool:
+        with concurrent.futures.ProcessPoolExecutor(450) as pool:
             pool.map(self.who_are_you, cmds)
 
     def who_are_you(self, cmd):
@@ -43,8 +45,17 @@ class SohoDoorway:
     def clearfile(self):
         os.system("clear")
         print("Processing..\n")
-        with open(self.log_file, "w") as file:
-            file.write("")
+        files = [self.log_file, self.non_telstra_organisations, self.summary]
+        for f in files:
+            with open(f, "w") as file:
+                file.write("")
+
+    def paperback(self, message, file, mode):
+        with open(file, "a") as writable:
+            if "list" in mode:
+                [writable.write(m + "\n") for m in message]
+            elif "str" in mode:
+                writable.write(message)
 
     def parselog(self):
         with open(self.log_file, "r") as file:
@@ -53,17 +64,21 @@ class SohoDoorway:
                 if ("netname:" in l or "descr:" in l  or "org-name" in l
                     or "OrgName" in l or "NetName" in l):
                     print(l)
-                    pass
+                    self.paperback(l, self.summary, "str")
                 elif "NetRange:" in l or "inetnum:" in l:
-                    print("\n----------------------------------\n" + l)
-                    pass
+                    message = "\n----------------------------------\n" + l
+                    print(message)
+                    self.paperback(message, self.summary, "str")
             nontelstra = [l.strip() for l in lines if "etname" in l or "OrgName" in l or "org-name" in l
             and not "telstra" in l and not "TELSTRAINTERNET3-AU" in l
             and not "Telstra" in l and not "TELSTRA" in l]
             nontelstra = set(nontelstra)
             nontelstra = [n.strip() for n in nontelstra if "TELSTRA" not in n and "remarks" not in n]
-            print("\nnon-Telstra entities in IP list:")
+            print("\n\n--------------------------------\n"
+                  "Non-Telstra entities in IP list:" +
+                  "\n--------------------------------\n")
             [print(n) for n in nontelstra]
+            self.paperback(nontelstra, self.non_telstra_organisations, "list")
 
     def controller(self):
         try:
