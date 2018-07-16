@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 
 import concurrent.futures
-import os
-from typing import Generator
 import glob
+import time
+import os
 import subprocess
+from typing import Generator
 
 
 class SohoDoorway:
     def __init__(self):
-        self.log_file = os.getcwd() + "/doorway.log"
-        self.non_telstra_organisations =  os.getcwd() + "/non_telstra_organisations.txt"
-        self.summary = os.getcwd() + "/summary.txt"
+        self.log_file = os.getcwd() + "/sync_doorway.log"
+        self.non_telstra_organisations =  os.getcwd() + "/sync_non_telstra_organisations.txt"
+        self.summary = os.getcwd() + "/sync_summary.txt"
 
     def read_ip_file(self) -> Generator:
         try:
@@ -29,18 +30,29 @@ class SohoDoorway:
             print("Error! in read_ip_file: " + str(e))
 
     def make_cmds(self, ips):
-        cmds = ("/bin/whois " + i for i in ips)
+        cmds = ["/bin/whois " + i for i in ips]
         return cmds
 
-    def substitute(self, cmds):
-        with concurrent.futures.ProcessPoolExecutor(450) as pool:
-            pool.map(self.who_are_you, cmds)
-
     def who_are_you(self, cmd):
-        whois = subprocess.run([cmd], shell=True, stdout=subprocess.PIPE)
-        res = whois.stdout.decode().strip()
-        with open(self.log_file, "a") as file:
-            file.writelines(res)
+        try:
+            size = len(cmd)
+            i: int = 1
+            t3 = time.perf_counter()
+            for c in cmd:
+                t1 = time.perf_counter()
+                print("\nfetching whois record: " + str(i) + " of " + str(size))
+                print("running " + str(c))
+                whois = subprocess.run([c], shell=True, stdout=subprocess.PIPE)
+                res = whois.stdout.decode().strip()
+                with open(self.log_file, "a") as file:
+                    file.writelines(res)
+                t2 = time.perf_counter()
+                t4 = time.perf_counter()
+                print("completed in: " + str(round(t2-t1, 4)) + "sec")
+                print("Total time: " + str(round(t4-t3, 4)) + "sec")
+                i += 1
+        except Exception as e:
+            print("Error! in who_are_you: " + str(e))
 
     def clearfile(self):
         os.system("clear")
@@ -87,9 +99,9 @@ class SohoDoorway:
             ips = [i.strip("\t").strip("\n").strip(" ").rstrip("\n") for i in ips for i in i if i]
             ips = [i for i in ips if i]
             ips = [i.split("/") for i in ips]
-            ips = [i[1] for i in ips]
+            ips = [i[0] for i in ips]
             cmds = self.make_cmds(ips)
-            self.substitute(cmds)
+            self.who_are_you(cmds)
             self.parselog()
             print("\nCompleted Successfully. \n\nDetails are in " + self.log_file + "\n")
         except Exception as e:
