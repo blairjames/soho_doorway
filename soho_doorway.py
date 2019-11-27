@@ -10,7 +10,7 @@ import subprocess
 class SohoDoorway:
     def __init__(self):
         self.log_file = os.getcwd() + "/doorway.log"
-        self.non_telstra_organisations =  os.getcwd() + "/non_telstra_organisations.txt"
+        self.organisations =  os.getcwd() + "/organisations.txt"
         self.summary = os.getcwd() + "/summary.txt"
 
     def read_ip_file(self) -> Generator:
@@ -45,7 +45,7 @@ class SohoDoorway:
     def clearfile(self):
         os.system("clear")
         print("Processing..\n")
-        files = [self.log_file, self.non_telstra_organisations, self.summary]
+        files = [self.log_file, self.organisations, self.summary]
         for f in files:
             with open(f, "w") as file:
                 file.write("")
@@ -69,16 +69,16 @@ class SohoDoorway:
                     message = "\n----------------------------------\n" + l
                     print(message)
                     self.paperback(message, self.summary, "str")
-            nontelstra = [l.strip() for l in lines if "etname" in l or "OrgName" in l or "org-name" in l
-            and not "telstra" in l and not "TELSTRAINTERNET3-AU" in l
-            and not "Telstra" in l and not "TELSTRA" in l]
-            nontelstra = set(nontelstra)
-            nontelstra = [n.strip() for n in nontelstra if "TELSTRA" not in n and "remarks" not in n]
+            non = [l.strip() for l in lines if "etname" in l or "OrgName" in l or "org-name" in l
+            and not "xxx" in l and not "xxx" in l
+            and not "xxx" in l and not "xxx" in l]
+            xxxx = set(xxx)
+            yyyyy = [n.strip() for n in xxx if "" not in n and "remarks" not in n]
             print("\n\n--------------------------------\n"
-                  "Non-Telstra entities in IP list:" +
+                  "Nxxx entities in IP list:" +
                   "\n--------------------------------\n")
-            [print(n) for n in nontelstra]
-            self.paperback(nontelstra, self.non_telstra_organisations, "list")
+            [print(n) for n in xxx]
+            self.paperback(xxx, self.organisations, "list")
 
     def controller(self):
         try:
